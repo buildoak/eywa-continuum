@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eywa-mcp"
+version = "0.1.0"
+description = "MCP server for cross-session context handoffs in Claude Code"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+dependencies = [
+  "mcp",
+  "pyyaml",
+  "aiohttp",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+]
+
+[project.urls]
+homepage = "https://github.com/buildoak/eywa-mcp"
+repository = "https://github.com/buildoak/eywa-mcp"
+
+[project.scripts]
+eywa-mcp = "eywa.server:cli"
+eywa-batch = "eywa.batch_index:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+include = ["eywa*"]
+
+[tool.setuptools.package-data]
+eywa = ["extractors/*"]

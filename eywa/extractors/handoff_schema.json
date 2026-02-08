@@ -1,0 +1,59 @@
+{
+  "type": "object",
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "description": "8-character session ID from input frontmatter"
+    },
+    "date": {
+      "type": "string",
+      "description": "ISO date from input frontmatter (YYYY-MM-DD)"
+    },
+    "duration": {
+      "type": "string",
+      "description": "Duration string from input frontmatter (e.g., '45m', '1h 20m')"
+    },
+    "model": {
+      "type": "string",
+      "description": "Model name from input frontmatter"
+    },
+    "headline": {
+      "type": "string",
+      "description": "Action-oriented summary, 5-10 words"
+    },
+    "projects": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Project names inferred from file paths"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {"type": "string"},
+      "maxItems": 10,
+      "description": "5-7 specific routing terms, lowercase-hyphenated"
+    },
+    "substance": {
+      "type": "integer",
+      "enum": [0, 1, 2],
+      "description": "0=no work, 1=single task, 2=multi-step progress"
+    },
+    "what_happened": {
+      "type": "string",
+      "description": "2-5 bullets, chronological. Empty for substance=0"
+    },
+    "insights": {
+      "type": "string",
+      "description": "Decisions/learnings/corrections. Empty for substance=0"
+    },
+    "key_files": {
+      "type": "string",
+      "description": "Important files, one per line. Empty unless substance=2"
+    },
+    "open_threads": {
+      "type": "string",
+      "description": "TODOs and unfinished work. Empty for substance=0"
+    }
+  },
+  "required": ["session_id", "date", "headline", "substance", "what_happened", "insights", "open_threads"],
+  "additionalProperties": false
+}
