@@ -1,10 +1,12 @@
 ---
 name: eywa
 description: >
-  Cross-session memory CLI. Use at session start to retrieve context from past sessions
-  (eywa get). Use at session end to persist a handoff document for future sessions
-  (eywa extract). Use when the user references past work, asks "what was I working on",
-  or when you need continuity from a prior session.
+  Cross-session memory and continuity CLI. Provides session memory, handoff documents,
+  and historical session retrieval. Use at session start to retrieve context from past
+  sessions (eywa get). Use at session end to persist a handoff document for future
+  sessions (eywa extract). Trigger on: "session memory", "handoff", "continuity",
+  "past sessions", "what was I working on", "session start", "session end",
+  "batch index", "historical sessions", "prior context", "previous session".
 ---
 
 # Eywa CLI
@@ -61,9 +63,26 @@ With `session_id`: explicit lookup only (8-char short ID or full UUID).
 
 In multi-session environments, pass session_id explicitly.
 
+## Bundled Resources
+
+| Path | What | When to load |
+|------|------|-------------|
+| `references/data-model.md` | Handoff format, folder structure, index schema | When you need to understand where data lives or debug retrieval |
+| `references/setup-guide.md` | First-time setup, model config, env vars, batch indexing | When setting up eywa for the first time or configuring models |
+| `eywa/cli.py` | CLI entry point | When debugging CLI behavior |
+| `eywa/extractors/handoff_schema.json` | Handoff document JSON schema | When validating handoff output |
+| `setup.sh` | Idempotent setup script | First-time installation |
+
 ## Tips
 
 - **Keywords, not sentences.** "mcp server" not "let's continue working on the MCP server"
 - **Don't extract trivial sessions.** Empty work = empty handoffs.
 - **max > 5 is capped.** 3 is usually enough — more dilutes context.
 - **Check exit codes.** Exit 1 means failure.
+
+## Anti-Patterns
+
+- **Do not run `eywa extract` on trivial sessions.** Sessions under 3 turns or 400 chars of content produce low-value handoffs.
+- **Do not skip `eywa-batch` on first install.** Without historical context, `eywa get` returns nothing useful.
+- **Do not use `eywa get` without a query when many handoffs exist.** It returns recent sessions by default — use keywords for targeted retrieval.
+- **Do not hardcode paths.** Use env vars (`EYWA_DATA_DIR`, `EYWA_SESSIONS_DIR`) for portability.
