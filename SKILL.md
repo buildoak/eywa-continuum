@@ -9,97 +9,61 @@ description: >
 
 # Eywa CLI
 
-Eywa extracts structured handoffs at session end and retrieves relevant past context at session start. It bridges the gap between ephemeral sessions by preserving what happened, what was decided, and what's still open.
+Cross-session memory. Extracts handoffs at session end, retrieves past context at session start.
 
-## Commands
+## Execution
+
+**All commands use this exact pattern — no variations:**
 
 ```bash
-eywa get                          # 3 most recent sessions
-eywa get "mcp routing"            # keyword search
-eywa get "topic" --days-back 30 --max 5
-
-eywa extract                      # auto-detect current session
-eywa extract 1b2f6f6b             # 8-char short ID
-eywa extract 1b2f6f6b-65a6-...   # full UUID
-
-eywa rebuild-index                # rescan all stored handoffs
+cd /Users/otonashi/thinking/pratchett-os/coordinator/.claude/skills/eywa-continuum && /Users/otonashi/thinking/pratchett-os/.venv/bin/python -m eywa.cli <command> [args]
 ```
 
-Output goes to stdout (for piping), errors to stderr. Exit code 0 = success, 1 = failure.
+### Copy-paste commands
+
+```bash
+# Get recent sessions (default 3)
+cd /Users/otonashi/thinking/pratchett-os/coordinator/.claude/skills/eywa-continuum && /Users/otonashi/thinking/pratchett-os/.venv/bin/python -m eywa.cli get
+
+# Get by keyword search
+cd /Users/otonashi/thinking/pratchett-os/coordinator/.claude/skills/eywa-continuum && /Users/otonashi/thinking/pratchett-os/.venv/bin/python -m eywa.cli get "mcp routing"
+
+# Get with options
+cd /Users/otonashi/thinking/pratchett-os/coordinator/.claude/skills/eywa-continuum && /Users/otonashi/thinking/pratchett-os/.venv/bin/python -m eywa.cli get "topic" --days-back 30 --max 5
+
+# Extract current session (auto-detect)
+cd /Users/otonashi/thinking/pratchett-os/coordinator/.claude/skills/eywa-continuum && /Users/otonashi/thinking/pratchett-os/.venv/bin/python -m eywa.cli extract
+
+# Extract specific session (8-char short ID or full UUID)
+cd /Users/otonashi/thinking/pratchett-os/coordinator/.claude/skills/eywa-continuum && /Users/otonashi/thinking/pratchett-os/.venv/bin/python -m eywa.cli extract 1b2f6f6b
+
+# Rebuild index
+cd /Users/otonashi/thinking/pratchett-os/coordinator/.claude/skills/eywa-continuum && /Users/otonashi/thinking/pratchett-os/.venv/bin/python -m eywa.cli rebuild-index
+```
+
+Output goes to stdout, errors to stderr. Exit code 0 = success, 1 = failure.
+
+**Why `cd` + `python -m`:** The `eywa` package lives in the skill directory, not on PATH. The venv Python picks it up from CWD. Do not try bare `eywa` — it does not exist as a binary.
 
 ## When to Call
 
-**eywa get:**
-- Session start (no query) — load recent context
-- When the user asks about past work — keyword query
-- When you need to recall decisions or context from prior sessions
+**eywa get:** Session start (no query), when user asks about past work (keyword query), when you need prior decisions.
 
-**eywa extract:**
-- Session end — persist what happened for the next session
-- After significant milestones mid-session (optional, re-extracts if session changed)
-- User explicitly asks to save context
+**eywa extract:** Session end, after significant milestones, when user asks to save context.
 
-**eywa rebuild-index:**
-- After manually editing or deleting handoff files
-- If the index file is corrupt or missing
-- After bulk imports via eywa-batch
+**eywa rebuild-index:** After manually editing handoff files, corrupt index, after bulk imports.
 
-## Output Format
+## Session Detection (extract)
 
-**eywa get** returns markdown:
-```markdown
-## Eywa: 2 past sessions
+Without `session_id`: auto-detects via PID tracing → CWD-scoped mtime → global mtime. Requires JSONL modified within 30 seconds.
 
-# Headline of first session
+With `session_id`: explicit lookup only (8-char short ID or full UUID).
 
-## What Happened
-- Bullet points of work done
+In multi-session environments, pass session_id explicitly.
 
-## Insights
-- Key decisions and learnings
+## Tips
 
-## Open Threads
-- Unfinished work and next steps
-
----
-
-# Headline of second session
-...
-```
-
-**eywa extract** returns the handoff filename + full handoff content. Handoffs are stored at `$EYWA_DATA_DIR/handoffs/YYYY/MM/DD/<session_id>.md`.
-
-## Session Detection
-
-When no `session_id` is provided, detection uses a 3-strategy fallback:
-1. PID tracing (lsof on parent process)
-2. CWD-scoped mtime (freshest JSONL in derived project dir)
-3. Global mtime (freshest JSONL across all project dirs)
-
-When a `session_id` is provided, Eywa only performs an explicit lookup (full UUID or 8-char short ID) — no heuristic fallback.
-
-Requires JSONL to be modified within 30 seconds. In ambiguous multi-session environments, pass the session_id explicitly.
-
-## Configuration
-
-| Variable | Default | Purpose |
-|---|---|---|
-| `EYWA_DATA_DIR` | `~/.eywa` | Handoffs + index storage |
-| `EYWA_SESSIONS_DIR` | `~/.claude/projects` | Session JSONL root |
-| `EYWA_TASKS_DIR` | `<sessions parent>/tasks` | PID-based session detection |
-| `EYWA_CLAUDE_MODEL` | `sonnet` | Model for extraction |
-| `EYWA_TIMEZONE` | `UTC` | Timestamp rendering |
-
-## Anti-Patterns
-
-- **Conversational queries.** Bad: "let's continue working on the MCP server". Good: "mcp server". Clean keywords score better.
-- **Extracting trivial sessions.** Sessions with no real work produce empty handoffs. Don't force extraction on empty sessions.
-- **Calling extract multiple times in quick succession.** Dedup check skips re-extraction if unchanged, but each call still runs detection and conversion.
-- **Ignoring exit codes.** Exit 1 means failure. Check `$?`.
-- **Setting max > 5.** Capped server-side. More than 3 is rarely useful — context gets diluted.
-
-## Setup
-
-```bash
-./setup.sh    # checks Python 3.10+, Node 18+, installs package + extractors
-```
+- **Keywords, not sentences.** "mcp server" not "let's continue working on the MCP server"
+- **Don't extract trivial sessions.** Empty work = empty handoffs.
+- **max > 5 is capped.** 3 is usually enough — more dilutes context.
+- **Check exit codes.** Exit 1 means failure.
