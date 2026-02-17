@@ -57,6 +57,17 @@ Output goes to stdout, errors to stderr. Exit code 0 = success, 1 = failure.
 1. **Summary first.** Before running `eywa extract`, produce a concise session summary inline — what was built, what decisions were made, what's open. This is your own synthesis, not a tool call. Write it as a message to the user.
 2. **Then extract.** Run `eywa extract` (or `eywa extract <session_id>`). The CLI independently parses the JSONL transcript. Your summary above becomes part of the transcript, enriching the handoff with an explicit recap.
 
+**Summary format depends on channel:**
+
+*Claude Code PC session (default):*
+- A **table** of items built/changed (columns: item, status, notes)
+- Followed by 2-3 succinct paragraphs: decisions made, patterns discovered, open threads
+
+*Telegram session:*
+- Short **bulleted list** of items done
+- Short **bulleted list** of pending/open items
+- 2-3 succinct paragraphs covering decisions and context
+
 **eywa rebuild-index:** After manually editing handoff files, corrupt index, after bulk imports.
 
 ## Session Detection (extract)
