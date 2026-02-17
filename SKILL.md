@@ -53,6 +53,10 @@ Output goes to stdout, errors to stderr. Exit code 0 = success, 1 = failure.
 
 **eywa extract:** Session end, after significant milestones, when user asks to save context.
 
+**Extract is a two-step protocol:**
+1. **Summary first.** Before running `eywa extract`, produce a concise session summary inline — what was built, what decisions were made, what's open. This is your own synthesis, not a tool call. Write it as a message to the user.
+2. **Then extract.** Run `eywa extract` (or `eywa extract <session_id>`). The CLI independently parses the JSONL transcript. Your summary above becomes part of the transcript, enriching the handoff with an explicit recap.
+
 **eywa rebuild-index:** After manually editing handoff files, corrupt index, after bulk imports.
 
 ## Session Detection (extract)
